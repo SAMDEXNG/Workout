@@ -1,0 +1,106 @@
+import json
+import datetime
+
+class Exercise:
+    def __init__(self, name, category):
+        self.name = name
+        self.category = category
+        self.duration = 0
+        self.calories_burned = 0
+
+    def start(self):
+        print(f"Started {self.name} exercise.")
+
+    def stop(self, duration):
+        self.duration += duration
+        self.calories_burned = self.calculate_calories_burned(duration)
+        print(f"Stopped {self.name} exercise. Total duration: {self.duration} minutes.")
+
+    def calculate_calories_burned(self, duration):
+        # Calculate calories burned based on the exercise and duration
+        # You can customize this calculation based on your requirements
+        return duration * 5  # Assuming 5 calories burned per minute
+
+
+class ExerciseTracker:
+    def __init__(self):
+        self.exercises = {}
+        self.data_file = "exercise_data.json"
+        self.load_data()
+
+    def add_exercise(self, exercise):
+        if exercise.category not in self.exercises:
+            self.exercises[exercise.category] = []
+
+        self.exercises[exercise.category].append(exercise)
+
+    def start_exercise(self, exercise_name):
+        for category in self.exercises.values():
+            for exercise in category:
+                if exercise.name.lower() == exercise_name.lower():
+                    exercise.start()
+                    return
+
+        print(f"Exercise '{exercise_name}' not found.")
+
+    def stop_exercise(self, exercise_name, duration):
+        for category in self.exercises.values():
+            for exercise in category:
+                if exercise.name.lower() == exercise_name.lower():
+                    exercise.stop(duration)
+                    self.save_data()
+                    return
+
+        print(f"Exercise '{exercise_name}' not found.")
+
+    def display_exercise_statistics(self):
+        for category, exercises in self.exercises.items():
+            print(f"\n--- {category} Exercises ---")
+            for exercise in exercises:
+                print(f"Exercise: {exercise.name}")
+                print(f"Total Duration: {exercise.duration} minutes")
+                print(f"Calories Burned: {exercise.calories_burned} calories")
+
+    def load_data(self):
+        try:
+            with open(self.data_file, "r") as file:
+                data = json.load(file)
+                for category, exercises_data in data.items():
+                    for exercise_data in exercises_data:
+                        exercise = Exercise(exercise_data["name"], category)
+                        exercise.duration = exercise_data["duration"]
+                        exercise.calories_burned = exercise_data["calories_burned"]
+                        self.add_exercise(exercise)
+        except FileNotFoundError:
+            print("No exercise data found. Starting fresh.")
+
+    def save_data(self):
+        data = {}
+        for category, exercises in self.exercises.items():
+            data[category] = []
+            for exercise in exercises:
+                exercise_data = {
+                    "name": exercise.name,
+                    "duration": exercise.duration,
+                    "calories_burned": exercise.calories_burned
+                }
+                data[category].append(exercise_data)
+
+        with open(self.data_file, "w") as file:
+            json.dump(data, file)
+
+
+# Example usage
+tracker = ExerciseTracker()
+
+# Create exercises
+push_ups = Exercise("Push-ups", "Upper Body")
+sit_ups = Exercise("Sit-ups", "Core")
+jogging = Exercise("Jogging", "Cardio")
+
+# Add exercises to tracker
+tracker.add_exercise(push_ups)
+tracker.add_exercise(sit_ups)
+tracker.add_exercise(jogging)
+
+# Start and
